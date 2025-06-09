@@ -70,8 +70,8 @@ for (file in excel_files) {
       return(letters[col_index])
     }
     
-    cell_info <- cell_info %>%
-      separate(address, into = c("row", "col_num"), sep = "\\.", convert = TRUE) %>%
+    cell_info <- cell_info |> 
+      separate(address, into = c("row", "col_num"), sep = "\\.", convert = TRUE) |> 
       mutate(
         col_letter = sapply(col_num, col_to_excel_letter),
         row = as.numeric(row)
@@ -155,18 +155,18 @@ for (file in excel_files) {
     # Now extract month names from that row
     month_names <- tolower(month.name)
     
-    month_cols <- cell_info %>%
-      filter(!is.na(text)) %>%
-      mutate(text_lower = tolower(text)) %>%
-      filter(text_lower %in% month_names) %>%
-      select(row, col_num, col_letter, text) %>%
+    month_cols <- cell_info |> 
+      filter(!is.na(text)) |> 
+      mutate(text_lower = tolower(text)) |> 
+      filter(text_lower %in% month_names) |> 
+      select(row, col_num, col_letter, text) |> 
       distinct(col_num, .keep_all = TRUE)  # Keep only one entry per column
     
     
     # Step 1: Identify missing adjacent columns
-    missing_month_cols <- month_cols %>%
-      mutate(col_num = col_num + 1) %>%
-      anti_join(month_cols, by = "col_num") %>%
+    missing_month_cols <- month_cols |> 
+      mutate(col_num = col_num + 1) |> 
+      anti_join(month_cols, by = "col_num") |> 
       mutate(
         col_letter = NA,  # You can fill this in later if needed
         text = text,      # Copy the month name
@@ -174,16 +174,16 @@ for (file in excel_files) {
       )
     
     # Step 2: Bind the new rows to the original
-    month_cols_filled <- bind_rows(month_cols, missing_month_cols) %>%
+    month_cols_filled <- bind_rows(month_cols, missing_month_cols) |> 
       arrange(col_num)
     
     # Ensure month_cols_filled has col_name
-    month_cols_filled <- month_cols_filled %>%
+    month_cols_filled <- month_cols_filled |> 
       mutate(col_name = paste0("col_", col_num))
     
     # Join just the 'text' column from month_cols_filled onto long_df
-    long_df_joined <- long_df %>%
-      left_join(month_cols_filled %>% select(col_name, month_text = text), by = "col_name")
+    long_df_joined <- long_df |> 
+      left_join(month_cols_filled |>  select(col_name, month_text = text), by = "col_name")
     
     location<-long_df_joined$text[1]
     
@@ -211,7 +211,9 @@ for (file in excel_files) {
       select(-stage) |> 
       rename(month = month_text, stage = col1_text)
     
-    
+    if (!dir.exists("output/")) {
+      dir.create("output/")
+    }
     write.csv(final_df, 
               file = paste0("output/species_life_stages_", tolower(gsub(" ", "_", sheet_name)), ".csv"), 
               row.names = FALSE)
