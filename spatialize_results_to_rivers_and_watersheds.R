@@ -1,6 +1,10 @@
 library(bcdata)
 library(tidyverse)
 
+current_wd = getwd()
+base_dir = stringr::str_extract(current_wd, 'C:/Users/[A-Z]+/')
+onedrive_folder = paste0(base_dir,"OneDrive - Government of BC/data/")
+
 fish_per = readRDS("output/fish_periodicity.rds")
 
 fish_per = fish_per |>
@@ -95,4 +99,5 @@ loc_streams = loc_streams |>
 
 # Write out fish periodicity matched to rivers / streams
 sf::write_sf(loc_streams, "output/fish_periodicity_stream_geometries.gpkg")
+sf::write_sf(loc_streams, paste0(onedrive_folder,"fish_periodicity_by_stream.gpkg"))
 
